@@ -1,0 +1,20 @@
+# Datos por proyecto (cada equipo gestiona los suyos en privado)
+data/*/
+output/*/
+projects/*/
+!data/.gitkeep
+!output/.gitkeep
+!projects/.gitkeep
+
+# Node
+tools/node_modules/
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
