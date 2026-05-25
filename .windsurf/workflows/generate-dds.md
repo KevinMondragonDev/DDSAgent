@@ -33,7 +33,7 @@ Crea el archivo `data/<proyecto>/agente.json` siguiendo el esqueleto de `.windsu
 ### 4. Validar el JSON
 // turbo
 ```powershell
-node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'));console.log('OK')"
+Get-Content 'data/<proyecto>/agente.json' -Raw | ConvertFrom-Json | Out-Null; Write-Host 'OK'
 ```
 
 Si falla, corrige el JSON antes de continuar.
@@ -54,28 +54,20 @@ if ($sentinels) {
 
 **Si NO hay cuestionario:** continúa con los siguientes pasos.
 
-### 6. Instalar dependencias del renderizador (solo la primera vez)
+### 6. Compilar el renderizador (solo la primera vez)
 // turbo
 ```powershell
 cd tools
-npm install
+mvn package
 ```
 
-### 7. Renderizar Markdown
+### 7. Renderizar Documentos (Markdown y Word)
 // turbo
 ```powershell
-node tools/render-md.js <proyecto>
+java -jar tools/target/dds-tools.jar <proyecto>
 ```
 
-Salida esperada: `output/<proyecto>/DDS_<proyecto>.md`.
-
-### 8. Renderizar Word
-// turbo
-```powershell
-node tools/render-docx.js <proyecto>
-```
-
-Salida esperada: `output/<proyecto>/DDS_<proyecto>.docx`. El script debe imprimir `✅ Todos los placeholders sustituidos.`. Si imprime warnings, abrir issue y NO entregar.
+Salida esperada: `output/<proyecto>/DDS_<proyecto>.md` y `output/<proyecto>/DDS_<proyecto>.docx`. El script debe imprimir `Todos los placeholders han sido sustituidos correctamente.`. Si imprime errores, abrir issue y NO entregar.
 
 ### 9. Verificación visual
 

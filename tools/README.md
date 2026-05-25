@@ -1,22 +1,28 @@
-# `tools/` — Renderizadores del DDS Santander
+# `tools/` — Renderizadores de DDS Santander (Java)
 
-Scripts Node.js que toman `data/<proyecto>/agente.json` y producen los entregables en
-`output/<proyecto>/`. No requieren TypeScript ni paso de compilación.
+Este directorio contiene el código fuente en Java para renderizar el **Documento de Diseño del Sistema (DDS)** a partir del `agente.json`.
 
 ## Requisitos
 
-- **Node.js** >= 18 (verificado con 20 y 24).
-- **npm** >= 9.
+- Java 17+
+- Maven
 
-## Instalacion (una sola vez por equipo)
+## Compilación
 
 ```powershell
 cd tools
-npm install
+mvn clean package
 ```
 
-Instala una única dependencia: `pizzip` (~50 KB), parser ZIP en JavaScript puro, usado
-para manipular el OOXML del `.docx`.
+Esto generará el archivo `target/dds-tools.jar`.
+
+## Uso
+
+Desde la raíz del repositorio, ejecuta:
+
+```powershell
+java -jar tools/target/dds-tools.jar <proyecto>
+```
 
 ## Comandos
 

@@ -49,7 +49,7 @@ Para cada pregunta respondida:
 ### 4. Validar que el JSON sigue parseando
 // turbo
 ```powershell
-node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'));console.log('OK')"
+Get-Content 'data/<proyecto>/agente.json' -Raw | ConvertFrom-Json | Out-Null; Write-Host 'OK'
 ```
 
 ### 5. Marcar el cuestionario
@@ -65,8 +65,7 @@ Si **no quedan preguntas pendientes**, renombrar el archivo a `cuestionario.comp
 ### 6. Re-renderizar
 // turbo
 ```powershell
-node tools/render-md.js   <proyecto>
-node tools/render-docx.js <proyecto>
+java -jar tools/target/dds-tools.jar <proyecto>
 ```
 
 ### 7. Reportar al usuario
@@ -92,4 +91,4 @@ Si quedan pendientes, listar las claves restantes para que el usuario priorice.
 ## Cuándo NO usar este workflow
 
 - Si no hay un cuestionario en `data/<proyecto>/`: usa `/generate-dds <proyecto>` directamente.
-- Si solo quieres re-renderizar tras editar el JSON manualmente: ejecuta `node tools/render-docx.js <proyecto>` directamente.
+- Si solo quieres re-renderizar tras editar el JSON manualmente: ejecuta `java -jar tools/target/dds-tools.jar <proyecto>` directamente.

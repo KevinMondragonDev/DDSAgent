@@ -6,17 +6,16 @@ Una vez `data/<proyecto>/agente.json` está validado, esta es la fase mecánica:
 
 ```powershell
 cd tools
-npm install
+mvn clean package
 ```
 
-Esto instala `pizzip` (~50 KB) en `tools/node_modules/`. No requiere conexión a internet en subsiguientes ejecuciones.
+Esto compila el código Java y descarga las dependencias (como `gson`). Genera el ejecutable `target/dds-tools.jar`.
 
 ## Renderizado
 
 ```powershell
 # Desde la raíz del repo:
-node tools/render-md.js   <proyecto>     # → output/<proyecto>/DDS_<proyecto>.md
-node tools/render-docx.js <proyecto>     # → output/<proyecto>/DDS_<proyecto>.docx
+java -jar tools/target/dds-tools.jar <proyecto>
 ```
 
 Donde `<proyecto>` coincide con el nombre del subdirectorio dentro de `data/`.
@@ -67,18 +66,17 @@ Esto garantiza que el JSON es la única fuente de verdad.
 
 | Síntoma | Causa | Solución |
 |---|---|---|
-| `JSON.parse error` | comilla suelta o coma sobrante en el JSON | corregir el JSON, validar con `node -e "JSON.parse(...)"` |
-| Aparecen `{{…}}` en el `.docx` | placeholder nuevo en la plantilla no mapeado | añadir el mapeo en `tools/render-docx.js` y en `tags-catalog.md` |
-| Tabla de vocabulario sigue mostrando 6 filas iguales | regex de detección de filas no matchea | inspeccionar el XML de la plantilla y ajustar el patrón en `render-docx.js` |
-| `.docx` no abre en Word | XML mal formado (caracteres `<`, `>`, `&` sin escapar) | revisar `escapeXml` en el script; el helper ya lo cubre |
-| `Cannot find module 'pizzip'` | `npm install` no se ejecutó | `cd tools && npm install` |
+| `JSON syntax error` | comilla suelta o coma sobrante en el JSON | corregir el JSON |
+| Aparecen `{{…}}` en el `.docx` | placeholder nuevo en la plantilla no mapeado | añadir el mapeo en `tools/src/main/java/com/santander/dds/RenderDocx.java` y en `tags-catalog.md` |
+| Tabla de vocabulario sigue mostrando 6 filas iguales | regex de detección de filas no matchea | inspeccionar el XML de la plantilla y ajustar el patrón en `RenderDocx.java` |
+| `.docx` no abre en Word | XML mal formado (caracteres `<`, `>`, `&` sin escapar) | revisar `escapeXml` en el script |
+| `Error: Unable to access jarfile` | `mvn package` no se ejecutó | `cd tools && mvn package` |
 
-## Scripts npm (atajos opcionales)
+## Modos de ejecución (Opcional)
 
-Definidos en `tools/package.json`:
+Si solo quieres generar un formato, puedes pasar el modo:
 
 ```powershell
-cd tools
-npm run render:md   -- <proyecto>
-npm run render:docx -- <proyecto>
+java -jar tools/target/dds-tools.jar <proyecto> md
+java -jar tools/target/dds-tools.jar <proyecto> docx
 ```

@@ -95,14 +95,15 @@ El repositorio usa tres mecanismos de configuración del agente de IA:
 
 ### Requisitos
 
-- **Node.js** >= 18.
+- **Java** 17 o superior.
+- **Maven** instalado.
 - Un agente de IA compatible con skills y workflows (p. ej., Windsurf).
 
 ### Instalar dependencias del renderizador (una sola vez)
 
 ```powershell
 cd tools
-npm install
+mvn clean package
 ```
 
 ## Documentar un proyecto nuevo
@@ -147,8 +148,7 @@ No editar el `.docx` directamente; es un artefacto generado.
 ```powershell
 # 1. Editar data/<mi-proyecto>/agente.json
 # 2. Volver a renderizar:
-node tools/render-md.js   <mi-proyecto>
-node tools/render-docx.js <mi-proyecto>
+java -jar tools/target/dds-tools.jar <mi-proyecto>
 ```
 
 ## Guia de evolución del repositorio
@@ -161,9 +161,9 @@ node tools/render-docx.js <mi-proyecto>
 | Las convenciones de redacción | `.windsurf/rules/dds-conventions.md` | Trigger `model_decision`. |
 | El runbook de generación | `.windsurf/workflows/generate-dds.md` | Invocable con `/generate-dds`. |
 | El runbook de cierre de lagunas | `.windsurf/workflows/answer-questionnaire.md` | Invocable con `/answer-questionnaire`. |
-| El renderizado del Markdown | `tools/render-md.js` | Genera el Markdown de salida. |
-| El renderizado del Word | `tools/render-docx.js` | Plantilla OOXML; ver `tools/README.md`. |
-| La estructura del JSON | `tools/paths.js` (validación) + `tags-catalog.md` (contrato) | Cambios estructurales requieren migrar JSONs existentes. |
+| El renderizado general | `tools/src/main/java/.../RenderMd.java` | Genera el Markdown de salida. |
+| El renderizado del Word | `tools/src/main/java/.../RenderDocx.java` | Lógica de reemplazo OOXML. |
+| La estructura del JSON | `tools/src/main/java/.../PathsHelper.java` | Cambios estructurales requieren migrar JSONs existentes. |
 | La plantilla Santander | **No editar.** Reemplazar en `Plantillas/` si hay nueva versión oficial. | Seguir el procedimiento en `dds-conventions.md`. |
 
 ## Archivos que no deben modificarse
