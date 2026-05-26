@@ -76,7 +76,6 @@ del `.md`. No aparecen en el `.docx` para preservar la fidelidad visual de la pl
 
 ```json
 {
-  "$schema": "./agente.schema.json",
   "metadata": {
     "proyecto": "<Nombre del proyecto>",
     "codigo_proyecto": "MX-<ACRONIMO>-<NNN>",

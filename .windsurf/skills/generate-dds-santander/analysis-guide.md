@@ -229,6 +229,6 @@ Para cada campo del DDS sin evidencia verificable en el código:
 
 1. Todas las claves del esqueleto de `tags-catalog.md` están presentes en el JSON.
 2. Ningún campo de tipo `string` contiene `"..."` ni placeholders sin completar.
-3. `node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'))"` retorna sin error.
+3. `Get-Content 'data/<proyecto>/agente.json' -Raw | ConvertFrom-Json | Out-Null; Write-Host 'OK'` retorna sin error.
 4. El array `pendientes[]` recoge todo lo que no pudo cubrirse con evidencia del código.
 5. Si hay sentinels `PENDIENTE_CUESTIONARIO`, existe `data/<proyecto>/cuestionario.md` con al menos una pregunta por cada sentinel.

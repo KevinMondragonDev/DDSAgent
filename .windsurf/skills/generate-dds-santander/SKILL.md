@@ -30,9 +30,13 @@ DDSAgent/
 ├── projects/
 │   └── <proyecto>/                              <- código fuente a analizar
 ├── tools/
-│   ├── render-md.js                             <- renderiza MD desde agente.json
-│   ├── render-docx.js                           <- renderiza DOCX desde agente.json
-│   └── package.json
+│   ├── pom.xml                                  <- descriptor Maven (fat JAR)
+│   ├── README.md                                <- referencia de uso del JAR
+│   └── src/main/java/com/santander/dds/
+│       ├── Main.java                            <- punto de entrada
+│       ├── PathsHelper.java                     <- resolución de rutas
+│       ├── RenderMd.java                        <- renderizador Markdown
+│       └── RenderDocx.java                      <- renderizador Word (POI)
 ├── data/
 │   └── <proyecto>/agente.json                   <- JSON estructurado por proyecto
 └── output/
@@ -71,7 +75,7 @@ Consulta `tags-catalog.md` para conocer **todas las claves obligatorias**. Escri
 4. **Idioma.** Español neutro técnico. Sin mezclar idiomas ni usar regionalismos que no pertenezcan al dominio del sistema.
 5. **Validación JSON.** Antes de renderizar, ejecuta:
    ```powershell
-   node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'));console.log('OK')"
+   Get-Content 'data/<proyecto>/agente.json' -Raw | ConvertFrom-Json | Out-Null; Write-Host 'OK'
    ```
 6. **Aviso de cuestionario.** Si se generó un cuestionario, informa al usuario antes de renderizar; es probable que prefiera responder primero para evitar entregar un documento con sentinels visibles.
 
@@ -80,13 +84,12 @@ Consulta `tags-catalog.md` para conocer **todas las claves obligatorias**. Escri
 Consulta `rendering-guide.md` para el detalle completo. Comandos canónicos:
 
 ```powershell
-cd tools
-npm install           # solo la primera vez en el equipo
-node render-md.js   <proyecto>   # genera output/<proyecto>/DDS_<proyecto>.md
-node render-docx.js <proyecto>   # genera output/<proyecto>/DDS_<proyecto>.docx
+# Si tools/pom.xml no existe, el agente lo crea primero (ver rendering-guide.md Fase A)
+mvn -f tools/pom.xml clean package -q   # solo la primera vez o tras cambios en el código
+java -jar tools/target/dds-tools.jar <proyecto>   # genera MD y DOCX
 ```
 
-Validación obligatoria al terminar: ningún `{{…}}` debe quedar en el `.docx`. Los scripts abortan la escritura si detectan placeholders residuales.
+Validación obligatoria al terminar: ningún `{{…}}` debe quedar en el `.docx`. El JAR aborta la escritura si detecta placeholders residuales.
 
 ## Recursos de esta skill
 
@@ -97,11 +100,11 @@ Validación obligatoria al terminar: ningún `{{…}}` debe quedar en el `.docx`
 
 ## Buenas prácticas
 
-- Usar `todo_write` con un máximo de seis ítems y marcarlos progresivamente conforme se avance.
+- Usar `todo_list` con un máximo de seis ítems y marcarlos progresivamente conforme se avance.
 - Antes de redactar cualquier contenido, buscar evidencia con las herramientas de búsqueda (`grep`, `glob`).
 - Si el repositorio tiene un `README.md` o un briefing del propietario, leerlo en primer lugar; habitualmente contiene el propósito y el alcance.
 - No modificar la carpeta `Plantillas/`. Esa carpeta es inmutable.
-- Si Santander publica una nueva versión de la plantilla, actualizar `tags-catalog.md`, los scripts de `tools/` y el esqueleto del JSON en una sola iteración controlada.
+- Si Santander publica una nueva versión de la plantilla, actualizar `tags-catalog.md`, las clases en `tools/src/main/java/com/santander/dds/` y el esqueleto del JSON en una sola iteración controlada.
 
 ## Errores frecuentes que deben evitarse
 

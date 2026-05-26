@@ -82,7 +82,7 @@ Toda descripción de componente, funcionalidad o sección debe seguir este orden
 - Si Santander publica una nueva versión de la plantilla:
   1. Reemplazar el archivo en `Plantillas/`.
   2. Ejecutar `grep -o "{{[^}]*}}"` sobre el `.md` normalizado para listar los nuevos placeholders.
-  3. Actualizar `tags-catalog.md` y los scripts en `tools/`.
+  3. Actualizar `tags-catalog.md` y las clases en `tools/src/main/java/com/santander/dds/`.
   4. Actualizar `metadata.version_documento` en los JSON existentes si el cambio estructural lo requiere.
 
 ---
@@ -103,14 +103,17 @@ Toda descripción de componente, funcionalidad o sección debe seguir este orden
 
 ```powershell
 # Validar que el JSON parsea correctamente
-node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'));console.log('OK')"
+Get-Content 'data/<proyecto>/agente.json' -Raw | ConvertFrom-Json | Out-Null; Write-Host 'OK'
 
 # Detectar sentinels antes de entregar
 Select-String -Pattern "PENDIENTE_CUESTIONARIO" -Path "data/<proyecto>/agente.json" -SimpleMatch
 
-# Renderizar
-node tools/render-md.js   <proyecto>
-node tools/render-docx.js <proyecto>
+# Renderizar (MD + DOCX)
+java -jar tools/target/dds-tools.jar <proyecto>
+
+# Renderizar solo un formato
+java -jar tools/target/dds-tools.jar <proyecto> md
+java -jar tools/target/dds-tools.jar <proyecto> docx
 ```
 
 Cualquier desviación de estos comandos debe documentarse en `tools/README.md`.

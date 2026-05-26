@@ -2,13 +2,6 @@
 data/*/
 output/*/
 projects/*/
-!data/.gitkeep
-!output/.gitkeep
-!projects/.gitkeep
-
-# Node
-tools/node_modules/
-node_modules/
 
 # Java/Maven
 tools/target/

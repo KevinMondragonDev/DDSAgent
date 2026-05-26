@@ -21,7 +21,7 @@ La maquinaria oficial está empaquetada como una skill: **`generate-dds-santande
 | `data/<nombre>/agente.json` | Fuente de verdad estructurada del DDS | Sí. |
 | `data/<nombre>/cuestionario.md` | Preguntas al usuario para cerrar lagunas | Sí. |
 | `output/<nombre>/` | Entregables finales (`.md`, `.docx`) | No. Se regenera automáticamente. |
-| `tools/` | Scripts de renderizado Node.js | Sí, con cuidado. |
+| `tools/` | Renderizador Java (código generado por el agente en primera ejecución) | Sí, con cuidado. |
 | `.windsurf/skills/` | Skill `generate-dds-santander` y sus recursos | Sí, evolutivo. |
 | `.windsurf/workflows/` | Slash commands `/generate-dds`, `/add-new-project` | Sí, evolutivo. |
 | `.windsurf/rules/` | Convenciones de redacción Santander | Sí, evolutivo. |

@@ -1,119 +1,96 @@
-# `tools/` — Renderizadores de DDS Santander (Java)
+# tools — Renderizador DDS Santander
 
-Este directorio contiene el código fuente en Java para renderizar el **Documento de Diseño del Sistema (DDS)** a partir del `agente.json`.
+Proyecto Java que toma `data/<proyecto>/agente.json` y produce los entregables en `output/<proyecto>/`.
+
+> **El código fuente no está en el repositorio.** El agente Windsurf lo genera la primera vez que se ejecuta el workflow `/generate-dds`, siguiendo las instrucciones de `.windsurf/skills/generate-dds-santander/rendering-guide.md`.
+
+---
 
 ## Requisitos
 
-- Java 17+
-- Maven
+- **Java 17** o superior (`java -version`).
+- **Maven 3.8** o superior (`mvn -version`).
 
-## Compilación
-
-```powershell
-cd tools
-mvn clean package
-```
-
-Esto generará el archivo `target/dds-tools.jar`.
+---
 
 ## Uso
 
-Desde la raíz del repositorio, ejecuta:
+### Generar MD y DOCX
 
 ```powershell
 java -jar tools/target/dds-tools.jar <proyecto>
 ```
 
-## Comandos
+### Generar solo Markdown
 
-| Comando | Salida |
+```powershell
+java -jar tools/target/dds-tools.jar <proyecto> md
+```
+
+### Generar solo Word
+
+```powershell
+java -jar tools/target/dds-tools.jar <proyecto> docx
+```
+
+Donde `<proyecto>` es el nombre del subdirectorio dentro de `data/` (p. ej. `mi-app`).
+
+---
+
+## Compilar (necesario después de crear o modificar el código fuente)
+
+```powershell
+mvn -f tools/pom.xml clean package -q
+```
+
+Genera `tools/target/dds-tools.jar`.
+
+---
+
+## Clases del proyecto
+
+| Clase | Responsabilidad |
 |---|---|
-| `node tools/render-md.js <proyecto>` | `output/<proyecto>/DDS_<proyecto>.md` |
-| `node tools/render-docx.js <proyecto>` | `output/<proyecto>/DDS_<proyecto>.docx` |
+| `Main` | Punto de entrada. Parsea argumentos, lee `agente.json` y delega en los renderizadores. |
+| `PathsHelper` | Resuelve todas las rutas del repositorio (`data/`, `Plantillas/`, `output/`) de forma relativa al directorio de trabajo actual. |
+| `RenderMd` | Lee la plantilla `.md`, sustituye placeholders, expande los loops de vocabulario y requisitos, añade el Anexo Técnico y escribe `output/<proyecto>/DDS_<proyecto>.md`. |
+| `RenderDocx` | Abre la plantilla `.docx` con Apache POI, sustituye placeholders en párrafos/encabezados/pies, expande tablas de vocabulario y requisitos, valida que no queden `{{...}}` y escribe `output/<proyecto>/DDS_<proyecto>.docx`. |
 
-Donde `<proyecto>` es el nombre del subdirectorio en `data/`.
+---
 
-Ejemplo con un proyecto hipotético llamado `mi-sistema`:
+## Salidas esperadas
 
-```powershell
-node tools/render-md.js   mi-sistema
-node tools/render-docx.js mi-sistema
+```
+output/<proyecto>/
+├── DDS_<proyecto>.md     ← Markdown con Anexo Técnico ampliado
+└── DDS_<proyecto>.docx   ← Word fiel a la plantilla Santander
 ```
 
-El script también acepta rutas más explícitas (se normalizan internamente):
+El programa imprime en consola:
 
-```powershell
-node tools/render-docx.js data/mi-sistema
-node tools/render-docx.js data/mi-sistema/agente.json
-```
+- `[MD]  Generado: output/<proyecto>/DDS_<proyecto>.md`
+- `[DOCX] Todos los placeholders han sido sustituidos correctamente.`
 
-## Codigos de salida
+Si aparece `[DOCX] ADVERTENCIA — Placeholders sin sustituir`, el archivo **no se escribe**. Corregir el mapeo en `RenderDocx.java` y recompilar.
 
-| Código | Significado |
-|---|---|
-| `0` | Éxito. Archivo generado correctamente. |
-| `1` | Falta el argumento `<proyecto>`. |
-| `2` | No existe `data/<proyecto>/agente.json`. |
-| `3` | JSON inválido (error de parseo). |
-| `4` | La plantilla `.docx` no contiene filas de vocabulario. La plantilla puede haber sido modificada. |
-| `5` | Quedaron placeholders `{{…}}` sin sustituir. El archivo de salida **no se escribe**. |
+---
 
-## Arquitectura interna
+## Dependencias principales
 
-- **`paths.js`** — Resolución centralizada de rutas (`<root>`, plantilla, JSON, salida) y
-  carga/validación del JSON.
-- **`render-md.js`** — Sustituye todos los placeholders en el `.md` y escribe el archivo
-  de salida. Incluye normalización de escapes de Google Docs (`\_`, `*` dentro de `{{...}}`).
-- **`render-docx.js`** — Abre el `.docx` con PizZip, normaliza placeholders en el XML OOXML,
-  expande la tabla de vocabulario, expande la tabla de requisitos y sustituye el resto de
-  placeholders. Valida que no queden `{{…}}` residuales antes de escribir.
+| Librería | Versión | Uso |
+|---|---|---|
+| `com.google.code.gson:gson` | 2.10.1 | Parseo de `agente.json` |
+| `org.apache.poi:poi-ooxml` | 5.2.5 | Manipulación del `.docx` (OOXML) |
 
-La convención completa de placeholders se documenta en
-`.windsurf/skills/generate-dds-santander/tags-catalog.md`.
+El `pom.xml` usa `maven-shade` para empaquetar un fat JAR con todas las dependencias incluidas.
 
-## Normalizacion de escapes de Google Docs
+---
 
-La plantilla se exporta desde Google Docs, lo que introduce:
+## Regenerar el código fuente
 
-- `\_` como escape Markdown para guiones bajos en nombres de campo.
-- `*` como delimitador de cursiva alrededor de palabras dentro de placeholders.
+Si se necesita regenerar el código (por cambio de plantilla, nuevos placeholders, etc.):
 
-Ambos scripts normalizan estos escapes **antes** de buscar placeholders, de modo que
-`{{fecha\_actual\_ddmmaa}}` y `{{Principales_*conceptos_y*_relaciones_entre_ellos}}`
-se resuelven correctamente sin modificar la plantilla fuente.
+1. Borrar `tools/src/` y `tools/pom.xml`.
+2. Ejecutar `/generate-dds <proyecto>` — el agente detectará que falta el proyecto y lo recreará.
 
-## Loops de tabla
-
-### Vocabulario
-
-La plantilla tiene 6 filas plantilla con `{{#vocabulario}}` y `{{termino}}`. El
-renderizador las expande a N filas, una por entrada de `vocabulario[]` en el JSON.
-
-### Requisitos
-
-La plantilla tiene 5 filas plantilla con `{{id_req}}`, `{{tipo_req}}`, `{{descripcion_req}}`
-y `{{prioridad_req}}`. El renderizador las expande a N filas, una por entrada de
-`tabla_requisitos[]` en el JSON.
-
-## Cuando modificar estos scripts
-
-- **Nueva version de la plantilla Santander** — Re-inspeccionar `document.xml` y ajustar
-  `render-docx.js`. Actualizar también `tags-catalog.md`.
-- **Nuevo placeholder en la plantilla** — Añadirlo al array `replacements` en `render-docx.js`
-  y al objeto `simple` en `render-md.js`. Actualizar `tags-catalog.md`.
-- **Cambio en la forma de un campo del JSON** — Ajustar el renderizador correspondiente
-  y `tags-catalog.md`.
-
-## Validacion rapida del JSON (sin renderizar)
-
-```powershell
-node -e "JSON.parse(require('fs').readFileSync('data/<proyecto>/agente.json','utf8'));console.log('OK')"
-```
-
-## Limitaciones conocidas
-
-- Los saltos de línea dentro de placeholders multilínea se renderizan como `<w:br/>` en el
-  `.docx` (mismo párrafo). Si se requieren párrafos separados en OOXML, es necesario
-  insertar `</w:p><w:p>` — mejora pendiente.
-- No se generan diagramas UML. Las secciones de diagrama quedan en texto; los diagramas
-  deben adjuntarse manualmente al `.docx` si se requieren.
+El mapeo completo de placeholders está en `.windsurf/skills/generate-dds-santander/tags-catalog.md`.

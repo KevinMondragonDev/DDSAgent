@@ -64,16 +64,90 @@ El usuario responde en el `.md`. Después, con `/answer-questionnaire <proyecto>
 
 ## Tipología de preguntas comunes
 
-| Sección JSON | Cuándo preguntar | Ejemplo |
-|---|---|---|
-| `metadata.codigo_proyecto` | El repo no contiene un código `MX-…`. | "¿Cuál es el código de proyecto Santander?" |
-| `proposito` | El README del repo no explicita el propósito de negocio. | "¿Cuál es el propósito de negocio que justifica este sistema?" |
-| `objetivos_beneficios[]` | Hay propósito pero no objetivos cuantificables. | "Lista 3-5 objetivos concretos del sistema (KPIs medibles si aplica)." |
-| `principales_conceptos_relaciones.entidades[].descripcion` | El tipo existe en código pero no hay docstring. | "Describe en una frase la entidad `Receta`." |
-| `definicion_roles[].rol` | No hay autenticación detectable. | "¿Qué actores/roles utilizan el sistema?" |
-| `anexo_requisitos[i].justificacion` | El requisito SO/FI/DI/US no se puede deducir del código. | "¿La aplicación opera 24h? Justifica la disponibilidad esperada." |
-| `resguardo_documentos_por_tipo_documental` | El sistema no maneja documentos formales. | "¿Qué tipos documentales se generan y cuál es su política de retención?" |
-| `plan_iteraciones[*]` | No hay roadmap visible. | "Describe las próximas 2-3 iteraciones planeadas." |
+Esta tabla cubre **todos los campos** del esqueleto JSON que pueden quedar como `PENDIENTE_CUESTIONARIO`. Generar la pregunta correspondiente en cuanto no haya evidencia en el código.
+
+### Metadatos
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `metadata.codigo_proyecto` | El repo no contiene un código `MX-…` en README, manifests ni comentarios. | `string` (`MX-XXX-NNN`) | Sí |
+| `metadata.descripcion_de_los_cambios` | Primera versión del documento (no hay historial). | `string` | No |
+
+### Sección 1 — Introducción
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `introduccion` | El README no tiene párrafo de contexto corporativo del sistema. | `string` multilínea | Sí |
+| `proposito` | El README no explicita el propósito de negocio (solo describe la tecnología). | `string` | Sí |
+| `alcance` | No hay documentación de qué incluye y qué excluye el sistema. | `string` | Sí |
+| `objetivos_beneficios[]` | Hay propósito pero no objetivos cuantificables ni KPIs. | `string[]` (uno por línea) | No |
+| `descripcion_del_sistema` | La arquitectura general no se puede inferir solo del código. | `string` multilínea | Sí |
+| `vocabulario[]` | El dominio tiene términos o acrónimos que no se explican en el código. | `{termino, definicion}[]` como JSON | No |
+
+### Sección 2 — Situación actual
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `situacion_actual` | No hay Dockerfile, pipeline CI/CD, ni README de infraestructura. | `string` multilínea | Sí |
+
+### Sección 3 — Análisis y requisitos
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `analisis_y_definicion_de_requisitos` | No hay documentáción de metodología de análisis. | `string` | No |
+| `principales_conceptos_relaciones.entidades[].descripcion` | El tipo/clase existe en código pero sin docstring ni comentario. | `string` por entidad | No |
+| `principales_conceptos_relaciones.relaciones[]` | No hay ORM, claves foráneas ni referencias entre tipos detectables. | `string[]` | No |
+| `funcionalidades_sistema[].nombre` | El nombre de la funcionalidad es técnico (nombre de componente), no de negocio. | `string` | Sí |
+| `funcionalidades_sistema[].descripcion` | La descripción no es verificable en el código. | `string` | Sí |
+| `definicion_roles[].rol` | No hay autenticación, guards ni middleware de permisos detectables. | `{rol, responsabilidad}[]` como JSON | Sí |
+| `division_sistema.capas[]` | La arquitectura por capas no es evidente en la estructura de carpetas. | `{nombre, descripcion}[]` como JSON | No |
+| `caso_uso_principal.nombre` | No hay README de flujos ni documentación de casos de uso. | `string` | Sí |
+| `caso_uso_principal.actor` | No se puede inferir el actor principal del sistema. | `string` | Sí |
+| `caso_uso_principal.precondicion` | No hay validaciones de estado previo detectables en el código. | `string` | No |
+| `caso_uso_principal.flujo_basico[]` | El flujo completo no se puede reconstruir solo del código. | `string[]` (pasos numerados) | Sí |
+| `caso_uso_principal.postcondicion` | No hay documentación del estado final esperado. | `string` | No |
+
+### Sección 4 — Tabla de requisitos
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `tabla_requisitos[]` | Los requisitos inferidos del código son insuficientes (menos de 5). | `{id, tipo, requisito, prioridad}[]` como JSON | Sí |
+
+### Sección 5 — XBRL
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `informes_xbrl` | El sistema procesa datos financieros o reportes regulatorios y no hay claridad sobre XBRL. | `string` | No |
+
+### Sección 6 — Documentación
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `documentacion_a_producir[]` | No hay plan de documentación más allá del propio DDS. | `string[]` (uno por línea) | No |
+
+### Sección 7 — Plan de iteraciones
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `plan_iteraciones[*]` | No hay roadmap, milestones ni backlog visible en el repositorio. | `{iteracion, nombre, alcance, estado}[]` como JSON | No |
+
+### Sección 8 — Resguardo documental
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `resguardo_documentos_por_tipo_documental` | Siempre preguntar si el sistema no gestiona explícitamente tipos documentales formales. | `string` | No |
+
+### Anexo 1 — Requisitos estructurales Santander
+
+| Sección JSON | Cuándo preguntar | Tipo esperado | Bloqueante |
+|---|---|---|---|
+| `anexo_requisitos[SO001].justificacion` | No hay concepto de organización, workspace o tenant en el código. | `string` | Sí |
+| `anexo_requisitos[SO002].justificacion` | El sistema gestiona valores monetarios pero no hay evidencia de multidivisa. | `string` | Sí |
+| `anexo_requisitos[SO003].justificacion` | La lógica de negocio y la presentación están mezcladas en el código. | `string` | Sí |
+| `anexo_requisitos[SO004].justificacion` | No hay archivos de internacionalización (i18n) detectables. | `string` | Sí |
+| `anexo_requisitos[FI001].justificacion` | No hay SLA ni arquitectura stateless/replicada documentada. | `string` | Sí |
+| `anexo_requisitos[DI001].justificacion` | No hay integraciones con sistemas corporativos del banco detectables. | `string` | Sí |
+| `anexo_requisitos[US001].justificacion` | No hay configuración de compatibilidad de navegadores ni tests de compatibilidad. | `string` | Sí |
 
 ## Sentinel value
 
@@ -83,7 +157,7 @@ En `agente.json`, los campos sin respuesta del usuario quedan exactamente como:
 "campo": "PENDIENTE_CUESTIONARIO"
 ```
 
-Esto permite a los renderizadores y validadores detectar de manera trivial los campos que aún no deben publicarse. Los scripts `tools/render-*.js` los renderizan como literal `"PENDIENTE_CUESTIONARIO"` (queda visible) — **NO debe entregarse un DDS con sentinels presentes.**
+Esto permite a los renderizadores y validadores detectar de manera trivial los campos que aún no deben publicarse. El JAR `tools/target/dds-tools.jar` los renderiza como literal `"PENDIENTE_CUESTIONARIO"` (queda visible) — **NO debe entregarse un DDS con sentinels presentes.**
 
 ## Ciclo de vida del cuestionario
 
@@ -96,7 +170,7 @@ Esto permite a los renderizadores y validadores detectar de manera trivial los c
         ↓
 [4] agente.json actualizado              ← Sentinel reemplazado por respuesta
         ↓
-[5] Re-renderizado (md + docx)           ← /generate-dds o tools/render-*
+[5] Re-renderizado (md + docx)           ← /generate-dds o java -jar tools/target/dds-tools.jar
         ↓
         ¿Aún quedan PENDIENTE_CUESTIONARIO?
             Sí → vuelve a [1] (cuestionario actualizado, solo gaps restantes)

@@ -26,7 +26,7 @@ Este repositorio combina:
 
 - Una **plantilla oficial Santander** (`Plantillas/DDS_Plantilla - formato santander.docx`).
 - Una **skill de agente IA** especializada (`generate-dds-santander`) que analiza cualquier repositorio y mapea los hallazgos a las secciones de la plantilla.
-- Un **renderizador Node.js** (`tools/`) que toma un JSON estructurado (`agente.json`) y produce los entregables en `.md` y `.docx` sin perder el formato corporativo.
+- Un **renderizador Java** (`tools/`) que toma un JSON estructurado (`agente.json`) y produce los entregables en `.md` y `.docx` sin perder el formato corporativo.
 
 El JSON intermedio (`data/<proyecto>/agente.json`) es la **única fuente de verdad**.
 Se edita el JSON y se vuelve a renderizar; el `.docx` es siempre un artefacto generado.
@@ -56,12 +56,14 @@ DDSAgent/
 │   ├── DDS_Plantilla - formato santander.docx
 │   └── DDS_Plantilla - formato santander.md
 │
-├── tools/                         <- renderizadores parametrizados
-│   ├── package.json               (única dependencia: pizzip)
-│   ├── paths.js                   (resolución de rutas)
-│   ├── render-md.js               (DDS en Markdown)
-│   ├── render-docx.js             (DDS en Word)
-│   └── README.md                  (referencia de uso)
+├── tools/                         <- renderizador Java parametrizado
+│   ├── pom.xml                    (descriptor Maven — generado por el agente)
+│   ├── README.md                  (referencia de uso del JAR)
+│   └── src/main/java/com/santander/dds/
+│       ├── Main.java              (punto de entrada)
+│       ├── PathsHelper.java       (resolución de rutas)
+│       ├── RenderMd.java          (DDS en Markdown)
+│       └── RenderDocx.java        (DDS en Word)
 │
 ├── projects/                      <- ENTRADAS: código fuente a documentar
 │   ├── README.md                  (convención de alta)
@@ -78,7 +80,7 @@ DDSAgent/
         └── DDS_<proyecto>.docx
 ```
 
-Las carpetas `data/`, `output/` y `projects/` se entregan vacías (solo `.gitkeep`). El agente las puebla por proyecto siguiendo el flujo descrito abajo.
+> Las carpetas `data/`, `output/` y `projects/<proyecto>/` **no están versionadas**; el agente las crea automáticamente al ejecutar `/add-new-project` o `/generate-dds`. El código fuente Java de `tools/` tampoco está versionado: el agente lo genera la primera vez que renderiza, siguiendo `.windsurf/skills/generate-dds-santander/rendering-guide.md`.
 
 ## Mecanismos del agente
 
@@ -99,11 +101,12 @@ El repositorio usa tres mecanismos de configuración del agente de IA:
 - **Maven** instalado.
 - Un agente de IA compatible con skills y workflows (p. ej., Windsurf).
 
-### Instalar dependencias del renderizador (una sola vez)
+### Compilar el renderizador (una sola vez por equipo)
+
+El agente crea el código fuente Java automáticamente si no existe. Si quieres compilar manualmente después de que el agente lo haya creado:
 
 ```powershell
-cd tools
-mvn clean package
+mvn -f tools/pom.xml clean package -q
 ```
 
 ## Documentar un proyecto nuevo

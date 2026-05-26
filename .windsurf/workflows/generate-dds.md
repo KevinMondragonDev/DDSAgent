@@ -13,6 +13,12 @@ Pipeline reproducible end-to-end para producir el Documento de Diseño del Siste
 
 ## Pasos
 
+### 0. Crear carpetas si no existen
+// turbo
+```powershell
+New-Item -ItemType Directory -Force -Path "projects/<proyecto>", "data/<proyecto>", "output/<proyecto>" | Out-Null
+```
+
 ### 1. Reconocer el proyecto
 
 Ejecuta el reconocimiento siguiendo `.windsurf/skills/generate-dds-santander/analysis-guide.md` sección **0. Reconocimiento**. Construye un inventario en `todo_list`.
@@ -27,8 +33,8 @@ Crea el archivo `data/<proyecto>/agente.json` siguiendo el esqueleto de `.windsu
 
 - **Si una sección no tiene evidencia, NO inventes.** Pon `"PENDIENTE_CUESTIONARIO"` y añade una entrada en `data/<proyecto>/cuestionario.md` siguiendo `.windsurf/skills/generate-dds-santander/questionnaire-format.md`. También añade el resumen a `pendientes[]`.
 - Idioma español neutro técnico.
-- `metadata.autor` = `"Windsurf AI"`.
-- `metadata.fecha_actual` y `metadata.fecha_version_documento` = fecha de hoy en `DD/MM/YYYY`.
+- `metadata.autor` = `"Agente IA"`.
+- `metadata.fecha_actual_ddmmaa` = fecha de hoy en `DD/MM/YYYY`.
 
 ### 4. Validar el JSON
 // turbo
@@ -54,12 +60,33 @@ if ($sentinels) {
 
 **Si NO hay cuestionario:** continúa con los siguientes pasos.
 
-### 6. Compilar el renderizador (solo la primera vez)
+### 6. Preparar el renderizador Java
+
+#### 6a. Verificar si el proyecto Java ya existe
 // turbo
 ```powershell
-cd tools
-mvn package
+Test-Path tools/pom.xml
 ```
+
+#### 6b. Si el resultado es `False` — crear el proyecto Java
+
+Leer `.windsurf/skills/generate-dds-santander/rendering-guide.md` sección **Fase A** y crear todos los archivos descritos ahí:
+
+- `tools/pom.xml` — descriptor Maven con las dependencias y el plugin indicados.
+- `tools/src/main/java/com/santander/dds/PathsHelper.java` — resolución de rutas.
+- `tools/src/main/java/com/santander/dds/Main.java` — punto de entrada del JAR.
+- `tools/src/main/java/com/santander/dds/RenderMd.java` — renderizador Markdown.
+- `tools/src/main/java/com/santander/dds/RenderDocx.java` — renderizador Word.
+
+Cada archivo tiene su responsabilidad detallada en los pasos A.2 a A.6 de la guía. No escribir código sin leer esa guía primero.
+
+#### 6c. Compilar
+// turbo
+```powershell
+mvn -f tools/pom.xml clean package -q
+```
+
+Debe terminar sin errores y generar `tools/target/dds-tools.jar`.
 
 ### 7. Renderizar Documentos (Markdown y Word)
 // turbo
@@ -67,9 +94,9 @@ mvn package
 java -jar tools/target/dds-tools.jar <proyecto>
 ```
 
-Salida esperada: `output/<proyecto>/DDS_<proyecto>.md` y `output/<proyecto>/DDS_<proyecto>.docx`. El script debe imprimir `Todos los placeholders han sido sustituidos correctamente.`. Si imprime errores, abrir issue y NO entregar.
+Salida esperada: `output/<proyecto>/DDS_<proyecto>.md` y `output/<proyecto>/DDS_<proyecto>.docx`. El programa debe imprimir `[DOCX] Todos los placeholders han sido sustituidos correctamente.` Si imprime advertencias de placeholders residuales, corregir el mapeo en `RenderDocx.java` y re-compilar antes de entregar.
 
-### 9. Verificación visual
+### 8. Verificación visual
 
 Abre el `.docx` en Word/LibreOffice. Comprueba:
 
@@ -79,7 +106,7 @@ Abre el `.docx` en Word/LibreOffice. Comprueba:
 - Footer con la fecha del documento.
 - **Cero apariciones de `PENDIENTE_CUESTIONARIO`** en el cuerpo del documento.
 
-### 10. Entregar
+### 9. Entregar
 
 Comparte con el usuario:
 
